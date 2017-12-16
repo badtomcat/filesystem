@@ -31,12 +31,12 @@ class FilesystemFilterTest extends PHPUnit_Framework_TestCase
             ],true);
         $this->assertArraySubset(["ba"],$ret);
 
-        $ret = Filter::filterAllDir(__DIR__."/aaaa",[
+        $ret = Filter::getDirectories(__DIR__."/aaaa",[
             'return' => 'filename'
         ],true);
         $this->assertArraySubset(["aaa","bbb","ddd","da"],$ret);
 
-        $ret = Filter::filterAllDir(__DIR__."/aaaa",[
+        $ret = Filter::getDirectories(__DIR__."/aaaa",[
             'return' => 'filename'
         ]);
         $this->assertArraySubset(["aaa","bbb","ddd"],$ret);

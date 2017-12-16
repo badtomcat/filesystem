@@ -43,7 +43,7 @@ class Filter
      * @param bool $recursive
      * @return array
      */
-    public static function filterCondition($dir,\Closure $callback, $condition = [], $recursive = false)
+    public static function filterCondition($dir, \Closure $callback, $condition = [], $recursive = false)
     {
         if (array_key_exists("mode", $condition) && $condition['mode'] == "basename") {
             $condition['mode'] = "basename";
@@ -99,10 +99,10 @@ class Filter
      */
     public static function filterEndswith($dir, $ext, $condition = [], $recursive = false)
     {
-        return self::filterCondition($dir,function ($path) use($ext){
+        return self::filterCondition($dir, function ($path) use ($ext) {
             $len = mb_strlen($ext);
             return mb_substr($path, -1 * $len, $len) == $ext;
-        },$condition,$recursive);
+        }, $condition, $recursive);
     }
 
     /**
@@ -111,11 +111,24 @@ class Filter
      * @param bool $recursive
      * @return array
      */
-    public static function filterAllDir($dir, $condition = [], $recursive = false)
+    public static function getDirectories($dir, $condition = [], $recursive = false)
     {
-        return self::filterCondition($dir,function ($path) {
+        return self::filterCondition($dir, function ($path) {
             return is_dir($path);
-        },$condition,$recursive);
+        }, $condition, $recursive);
+    }
+
+    /**
+     * @param $dir
+     * @param array $condition
+     * @param bool $recursive
+     * @return array
+     */
+    public static function getFiles($dir, $condition = [], $recursive = false)
+    {
+        return self::filterCondition($dir, function ($path) {
+            return is_file($path) && !is_dir($path);
+        }, $condition, $recursive);
     }
 
     /**
