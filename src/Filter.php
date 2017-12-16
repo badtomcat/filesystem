@@ -36,40 +36,33 @@ class Filter
     /**
      * @param $dir
      * @param \Closure $callback 参数一个,PATH
-     * @param array $condition mode=>basename/filename(默认filename),
-     *                      only=['aaa.txt'],
-     *                      except=>[]
-     *                      return=>full/basename/filename(默认full),
+     * @param Condition $condition
      * @param bool $recursive
      * @return array
      */
-    public static function filterCondition($dir, \Closure $callback, $condition = [], $recursive = false)
+    public static function filterCondition($dir, \Closure $callback, Condition $condition = null, $recursive = false)
     {
-        if (array_key_exists("mode", $condition) && $condition['mode'] == "basename") {
-            $condition['mode'] = "basename";
-        } else {
-            $condition['mode'] = "filename";
+        if (is_null($condition)) {
+            $condition = Condition::create();
         }
-        if (!isset($condition['return']))
-            $condition['return'] = 'full';
-
         $callback = function ($path) use ($callback, $condition) {
             if ($callback($path)) {
-                if ($condition["mode"] == "filename") {
+                if ($condition->isModeFilename()) {
                     $cmp = pathinfo($path, PATHINFO_FILENAME);
                 } else {
                     $cmp = pathinfo($path, PATHINFO_BASENAME);;
                 }
-                if (array_key_exists("only", $condition)) {
-                    if (in_array($cmp, $condition["only"]))
+                if (!$condition->isEmptyOnly()) {
+                    if ($condition->isInOnly($cmp))
                         return true;
-                } elseif (array_key_exists("except", $condition)) {
-                    if (!in_array($cmp, $condition["except"]))
+                } elseif (!$condition->isEmptyExcept()) {
+                    if (!$condition->isInExcept($cmp))
                         return true;
                 } else {
                     return true;
                 }
             }
+            return null;
         };
 
         if ($recursive)
@@ -77,12 +70,12 @@ class Filter
         else
             $ret = Filter::filter($dir, $callback);
 
-        if ($condition['return'] == 'basename') {
+        if ($condition->isReturnBasename()) {
             return array_map(function ($value) {
                 return pathinfo($value, PATHINFO_BASENAME);
             }, $ret);
         }
-        if ($condition['return'] == 'filename') {
+        if ($condition->isReturnFilename()) {
             return array_map(function ($value) {
                 return pathinfo($value, PATHINFO_FILENAME);
             }, $ret);
@@ -93,11 +86,11 @@ class Filter
     /**
      * @param $dir
      * @param $ext
-     * @param array $condition
+     * @param Condition $condition
      * @param bool $recursive
      * @return array
      */
-    public static function filterEndswith($dir, $ext, $condition = [], $recursive = false)
+    public static function filterEndswith($dir, $ext, $condition = null, $recursive = false)
     {
         return self::filterCondition($dir, function ($path) use ($ext) {
             $len = mb_strlen($ext);
@@ -107,11 +100,11 @@ class Filter
 
     /**
      * @param $dir
-     * @param array $condition
+     * @param Condition $condition
      * @param bool $recursive
      * @return array
      */
-    public static function getDirectories($dir, $condition = [], $recursive = false)
+    public static function getDirectories($dir, $condition = null, $recursive = false)
     {
         return self::filterCondition($dir, function ($path) {
             return is_dir($path);
@@ -120,11 +113,11 @@ class Filter
 
     /**
      * @param $dir
-     * @param array $condition
+     * @param Condition $condition
      * @param bool $recursive
      * @return array
      */
-    public static function getFiles($dir, $condition = [], $recursive = false)
+    public static function getFiles($dir, $condition = null, $recursive = false)
     {
         return self::filterCondition($dir, function ($path) {
             return is_file($path) && !is_dir($path);
