@@ -83,7 +83,7 @@ class Filesystem
     public static function createDir($dir, $recursive = true, $auth = 0755)
     {
         if (!empty ($dir)) {
-            return !!is_dir($dir) or !!mkdir($dir, $recursive, $auth);
+            return !!is_dir($dir) or !!mkdir($dir, $auth, $recursive);
         }
         return false;
     }
@@ -131,12 +131,9 @@ class Filesystem
         }
         // 创建目录
         if (!is_dir(dirname($to))) {
-            if ($force)
-            {
+            if ($force) {
                 self::createDir(dirname($to));
-            }
-            else
-            {
+            } else {
                 return false;
             }
         }
