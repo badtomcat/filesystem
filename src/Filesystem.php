@@ -101,6 +101,8 @@ class Filesystem
      */
     public static function copyDir($old, $new, $copyself = false)
     {
+        if (!is_dir($old))
+            return false;
         if ($copyself) {
             if (substr($new, -1, 1) !== "/") {
                 $new = $new . '/';
@@ -110,7 +112,9 @@ class Filesystem
         is_dir($new) or mkdir($new, 0755, true);
         foreach (glob($old . '/*') as $v) {
             $to = $new . '/' . basename($v);
-            is_file($v) ? copy($v, $to) : self::copyDir($v, $to, false);
+            $f = is_file($v) ? copy($v, $to) : self::copyDir($v, $to, false);
+            if (!$f)
+                return false;
         }
         return true;
     }
